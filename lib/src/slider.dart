@@ -144,7 +144,7 @@ class SliderDrawerState extends State<SliderDrawer>
       _animationDrawerController.duration = Duration(milliseconds: duration);
       _animationDrawerController.reverse().then(
         (_) {
-          debugPrint('reset animation duration');
+          // reset animation duration
           _animationDrawerController.duration =
               Duration(milliseconds: widget.animationDuration);
         },
@@ -279,15 +279,11 @@ class SliderDrawerState extends State<SliderDrawer>
                 widget.slideDirection == SlideDirection.LEFT_TO_RIGHT) ||
             (detail.velocity.pixelsPerSecond.dx > 0 &&
                 widget.slideDirection == SlideDirection.RIGHT_TO_LEFT)) {
-          debugPrint(
-              'fling ${detail.velocity.pixelsPerSecond.dx < 0 ? 'left' : 'right'}');
           closeSlider(
               duration:
                   _calculateDuration(detail.velocity.pixelsPerSecond.dx.abs()));
           return;
         }
-        debugPrint('fling left');
-        //closeSlider();
       }
       openOrClose();
       setState(() {
