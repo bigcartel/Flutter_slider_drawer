@@ -3,9 +3,9 @@ import 'package:flutter_slider_drawer/src/app_bar.dart';
 import 'package:flutter_slider_drawer/src/helper/slider_app_bar.dart';
 import 'package:flutter_slider_drawer/src/helper/slider_shadow.dart';
 import 'package:flutter_slider_drawer/src/helper/utils.dart';
-import 'package:flutter_slider_drawer/src/slider_shadow.dart';
 import 'package:flutter_slider_drawer/src/slider_bar.dart';
 import 'package:flutter_slider_drawer/src/slider_direction.dart';
+import 'package:flutter_slider_drawer/src/slider_shadow.dart';
 
 /// SliderDrawer which have two [child] and [slider] parameter
 ///
@@ -120,6 +120,7 @@ class SliderDrawerState extends State<SliderDrawer>
 
   late AnimationController _animationDrawerController;
   late Animation _animation;
+  final int flingVelocity = 600;
 
   bool _isDragging = false;
 
@@ -138,7 +139,21 @@ class SliderDrawerState extends State<SliderDrawer>
   void openSlider() => _animationDrawerController.forward();
 
   /// Close slider
-  void closeSlider() => _animationDrawerController.reverse();
+  void closeSlider({int? duration}) {
+    if (duration != null) {
+      _animationDrawerController.duration = Duration(milliseconds: duration);
+      _animationDrawerController.reverse().then(
+        (_) {
+          debugPrint('reset animation duration');
+          _animationDrawerController.duration =
+              Duration(milliseconds: widget.animationDuration);
+        },
+      );
+    } else {
+      _animationDrawerController.reverse();
+    }
+  }
+
   Color _appBarColor = Color(0xffffffff);
 
   @override
@@ -259,6 +274,21 @@ class SliderDrawerState extends State<SliderDrawer>
   void _onHorizontalDragEnd(DragEndDetails detail) {
     if (!widget.isDraggable) return;
     if (_isDragging) {
+      if (detail.velocity.pixelsPerSecond.dx.abs() > flingVelocity) {
+        if ((detail.velocity.pixelsPerSecond.dx < 0 &&
+                widget.slideDirection == SlideDirection.LEFT_TO_RIGHT) ||
+            (detail.velocity.pixelsPerSecond.dx > 0 &&
+                widget.slideDirection == SlideDirection.RIGHT_TO_LEFT)) {
+          debugPrint(
+              'fling ${detail.velocity.pixelsPerSecond.dx < 0 ? 'left' : 'right'}');
+          closeSlider(
+              duration:
+                  _calculateDuration(detail.velocity.pixelsPerSecond.dx.abs()));
+          return;
+        }
+        debugPrint('fling left');
+        //closeSlider();
+      }
       openOrClose();
       setState(() {
         _isDragging = false;
@@ -309,4 +339,14 @@ class SliderDrawerState extends State<SliderDrawer>
   }
 
   openOrClose() => _percent > 0.3 ? openSlider() : closeSlider();
+
+  // Calculate a dynamic duration based on fling velocity
+  int _calculateDuration(double velocity) {
+    final int baseDuration = widget.animationDuration;
+    // Calculate new duration based on velocity
+    int calculatedDuration =
+        (baseDuration / (velocity / flingVelocity)).round();
+    // Clamp the duration to a reasonable range
+    return calculatedDuration.clamp(50, widget.animationDuration);
+  }
 }
