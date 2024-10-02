@@ -3,9 +3,10 @@ import 'package:flutter_slider_drawer/src/app_bar.dart';
 import 'package:flutter_slider_drawer/src/helper/slider_app_bar.dart';
 import 'package:flutter_slider_drawer/src/helper/slider_shadow.dart';
 import 'package:flutter_slider_drawer/src/helper/utils.dart';
-import 'package:flutter_slider_drawer/src/slider_shadow.dart';
 import 'package:flutter_slider_drawer/src/slider_bar.dart';
 import 'package:flutter_slider_drawer/src/slider_direction.dart';
+import 'package:flutter_slider_drawer/src/slider_divider.dart';
+import 'package:flutter_slider_drawer/src/slider_shadow.dart';
 
 /// SliderDrawer which have two [child] and [slider] parameter
 ///
@@ -92,20 +93,30 @@ class SliderDrawer extends StatefulWidget {
   ///
   final bool isCupertino;
 
-  const SliderDrawer(
-      {Key? key,
-      required this.slider,
-      required this.child,
-      this.isDraggable = true,
-      this.animationDuration = 400,
-      this.sliderOpenSize = 265,
-      this.splashColor = const Color(0xffffff),
-      this.sliderCloseSize = 0,
-      this.slideDirection = SlideDirection.LEFT_TO_RIGHT,
-      this.sliderBoxShadow,
-      this.appBar = const SliderAppBar(),
-      this.isCupertino = false})
-      : super(key: key);
+  ///[Color] divider color
+  ///
+  final Color? dividerColor;
+
+  /// [double] divider width
+  /// By default it's 1
+  final double dividerWidth;
+
+  const SliderDrawer({
+    Key? key,
+    required this.slider,
+    required this.child,
+    this.isDraggable = true,
+    this.animationDuration = 400,
+    this.sliderOpenSize = 265,
+    this.splashColor = const Color(0xffffff),
+    this.sliderCloseSize = 0,
+    this.slideDirection = SlideDirection.LEFT_TO_RIGHT,
+    this.sliderBoxShadow,
+    this.appBar = const SliderAppBar(),
+    this.isCupertino = false,
+    this.dividerColor,
+    this.dividerWidth = 1,
+  }) : super(key: key);
 
   @override
   SliderDrawerState createState() => SliderDrawerState();
@@ -120,6 +131,7 @@ class SliderDrawerState extends State<SliderDrawer>
 
   late AnimationController _animationDrawerController;
   late Animation _animation;
+  final int flingVelocity = 600;
 
   bool _isDragging = false;
 
@@ -138,7 +150,21 @@ class SliderDrawerState extends State<SliderDrawer>
   void openSlider() => _animationDrawerController.forward();
 
   /// Close slider
-  void closeSlider() => _animationDrawerController.reverse();
+  void closeSlider({int? duration}) {
+    if (duration != null) {
+      _animationDrawerController.duration = Duration(milliseconds: duration);
+      _animationDrawerController.reverse().then(
+        (_) {
+          // reset animation duration
+          _animationDrawerController.duration =
+              Duration(milliseconds: widget.animationDuration);
+        },
+      );
+    } else {
+      _animationDrawerController.reverse();
+    }
+  }
+
   Color _appBarColor = Color(0xffffffff);
 
   @override
@@ -182,6 +208,15 @@ class SliderDrawerState extends State<SliderDrawer>
             sliderBoxShadow: widget.sliderBoxShadow!,
           ),
         ],
+        if (widget.dividerColor != null)
+          SliderDivider(
+            divider: widget.dividerColor!,
+            animationDrawerController: _animationDrawerController,
+            animation: _animation,
+            slideDirection: widget.slideDirection,
+            sliderOpenSize: widget.sliderOpenSize,
+            width: widget.dividerWidth,
+          ),
 
         //Child
         AnimatedBuilder(
@@ -259,6 +294,17 @@ class SliderDrawerState extends State<SliderDrawer>
   void _onHorizontalDragEnd(DragEndDetails detail) {
     if (!widget.isDraggable) return;
     if (_isDragging) {
+      if (detail.velocity.pixelsPerSecond.dx.abs() > flingVelocity) {
+        if ((detail.velocity.pixelsPerSecond.dx < 0 &&
+                widget.slideDirection == SlideDirection.LEFT_TO_RIGHT) ||
+            (detail.velocity.pixelsPerSecond.dx > 0 &&
+                widget.slideDirection == SlideDirection.RIGHT_TO_LEFT)) {
+          closeSlider(
+              duration:
+                  _calculateDuration(detail.velocity.pixelsPerSecond.dx.abs()));
+          return;
+        }
+      }
       openOrClose();
       setState(() {
         _isDragging = false;
@@ -309,4 +355,14 @@ class SliderDrawerState extends State<SliderDrawer>
   }
 
   openOrClose() => _percent > 0.3 ? openSlider() : closeSlider();
+
+  // Calculate a dynamic duration based on fling velocity
+  int _calculateDuration(double velocity) {
+    final int baseDuration = widget.animationDuration;
+    // Calculate new duration based on velocity
+    int calculatedDuration =
+        (baseDuration / (velocity / flingVelocity)).round();
+    // Clamp the duration to a reasonable range
+    return calculatedDuration.clamp(50, widget.animationDuration);
+  }
 }
