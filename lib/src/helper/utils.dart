@@ -34,4 +34,18 @@ class Utils {
         return Offset(value - 30.0, 0);
     }
   }
+
+  static Offset getOffsetValuesForDivider(
+      SlideDirection direction, double value) {
+    switch (direction) {
+      case SlideDirection.LEFT_TO_RIGHT:
+        return Offset(value - 1, 0);
+      case SlideDirection.RIGHT_TO_LEFT:
+        return Offset(-value - 1, 0);
+      case SlideDirection.TOP_TO_BOTTOM:
+        return Offset(0, value);
+      default:
+        return Offset(value, 0);
+    }
+  }
 }

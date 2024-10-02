@@ -5,6 +5,7 @@ import 'package:flutter_slider_drawer/src/helper/slider_shadow.dart';
 import 'package:flutter_slider_drawer/src/helper/utils.dart';
 import 'package:flutter_slider_drawer/src/slider_bar.dart';
 import 'package:flutter_slider_drawer/src/slider_direction.dart';
+import 'package:flutter_slider_drawer/src/slider_divider.dart';
 import 'package:flutter_slider_drawer/src/slider_shadow.dart';
 
 /// SliderDrawer which have two [child] and [slider] parameter
@@ -92,20 +93,30 @@ class SliderDrawer extends StatefulWidget {
   ///
   final bool isCupertino;
 
-  const SliderDrawer(
-      {Key? key,
-      required this.slider,
-      required this.child,
-      this.isDraggable = true,
-      this.animationDuration = 400,
-      this.sliderOpenSize = 265,
-      this.splashColor = const Color(0xffffff),
-      this.sliderCloseSize = 0,
-      this.slideDirection = SlideDirection.LEFT_TO_RIGHT,
-      this.sliderBoxShadow,
-      this.appBar = const SliderAppBar(),
-      this.isCupertino = false})
-      : super(key: key);
+  ///[Color] divider color
+  ///
+  final Color? dividerColor;
+
+  /// [double] divider width
+  /// By default it's 1
+  final double dividerWidth;
+
+  const SliderDrawer({
+    Key? key,
+    required this.slider,
+    required this.child,
+    this.isDraggable = true,
+    this.animationDuration = 400,
+    this.sliderOpenSize = 265,
+    this.splashColor = const Color(0xffffff),
+    this.sliderCloseSize = 0,
+    this.slideDirection = SlideDirection.LEFT_TO_RIGHT,
+    this.sliderBoxShadow,
+    this.appBar = const SliderAppBar(),
+    this.isCupertino = false,
+    this.dividerColor,
+    this.dividerWidth = 1,
+  }) : super(key: key);
 
   @override
   SliderDrawerState createState() => SliderDrawerState();
@@ -197,6 +208,15 @@ class SliderDrawerState extends State<SliderDrawer>
             sliderBoxShadow: widget.sliderBoxShadow!,
           ),
         ],
+        if (widget.dividerColor != null)
+          SliderDivider(
+            divider: widget.dividerColor!,
+            animationDrawerController: _animationDrawerController,
+            animation: _animation,
+            slideDirection: widget.slideDirection,
+            sliderOpenSize: widget.sliderOpenSize,
+            width: widget.dividerWidth,
+          ),
 
         //Child
         AnimatedBuilder(
