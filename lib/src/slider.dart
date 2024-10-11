@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_slider_drawer/src/app_bar.dart';
 import 'package:flutter_slider_drawer/src/helper/slider_app_bar.dart';
 import 'package:flutter_slider_drawer/src/helper/slider_shadow.dart';
@@ -134,6 +134,7 @@ class SliderDrawerState extends State<SliderDrawer>
   final int flingVelocity = 600;
 
   bool _isDragging = false;
+  bool _open = false;
 
   /// check whether drawer is open
   bool get isDrawerOpen => _animationDrawerController.isCompleted;
@@ -174,13 +175,20 @@ class SliderDrawerState extends State<SliderDrawer>
     _animationDrawerController = AnimationController(
         vsync: this,
         duration: Duration(milliseconds: widget.animationDuration));
-
     _animation =
         Tween<double>(begin: widget.sliderCloseSize, end: widget.sliderOpenSize)
             .animate(CurvedAnimation(
                 parent: _animationDrawerController,
                 curve: Curves.decelerate,
                 reverseCurve: Curves.decelerate));
+    _animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        setState(() {
+          _open = status == AnimationStatus.completed;
+        });
+      }
+    });
     if (widget.appBar is SliderAppBar) {
       _appBarColor = (widget.appBar as SliderAppBar).appBarColor;
     }
@@ -228,32 +236,51 @@ class SliderDrawerState extends State<SliderDrawer>
               child: child,
             );
           },
-          child: GestureDetector(
-            onHorizontalDragStart: _onHorizontalDragStart,
-            onHorizontalDragEnd: _onHorizontalDragEnd,
-            onHorizontalDragUpdate: (detail) =>
-                _onHorizontalDragUpdate(detail, constrain),
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: _appBarColor,
-              child: Column(
-                children: <Widget>[
-                  if (widget.appBar != null && widget.appBar is SliderAppBar)
-                    SAppBar(
-                      isCupertino: widget.isCupertino,
-                      slideDirection: widget.slideDirection,
-                      onTap: () => toggle(),
-                      animationController: _animationDrawerController,
-                      splashColor: widget.splashColor,
-                      sliderAppBar: widget.appBar as SliderAppBar,
-                    ),
-                  if (widget.appBar != null && widget.appBar is! SliderAppBar)
-                    widget.appBar!,
-                  Expanded(child: widget.child),
-                ],
+          child: Stack(
+            children: [
+              GestureDetector(
+                onHorizontalDragStart: _onHorizontalDragStart,
+                onHorizontalDragEnd: _onHorizontalDragEnd,
+                onHorizontalDragUpdate: (detail) =>
+                    _onHorizontalDragUpdate(detail, constrain),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: _appBarColor,
+                  child: Column(
+                    children: <Widget>[
+                      if (widget.appBar != null &&
+                          widget.appBar is SliderAppBar)
+                        SAppBar(
+                          isCupertino: widget.isCupertino,
+                          slideDirection: widget.slideDirection,
+                          onTap: () => toggle(),
+                          animationController: _animationDrawerController,
+                          splashColor: widget.splashColor,
+                          sliderAppBar: widget.appBar as SliderAppBar,
+                        ),
+                      if (widget.appBar != null &&
+                          widget.appBar is! SliderAppBar)
+                        widget.appBar!,
+                      Expanded(child: widget.child),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              if (_open)
+                GestureDetector(
+                  onTap: () {
+                    closeSlider();
+                  },
+                  onHorizontalDragStart: _onHorizontalDragStart,
+                  onHorizontalDragEnd: _onHorizontalDragEnd,
+                  onHorizontalDragUpdate: (detail) =>
+                      _onHorizontalDragUpdate(detail, constrain),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                ),
+            ],
           ),
         ),
       ]));
