@@ -236,57 +236,32 @@ class SliderDrawerState extends State<SliderDrawer>
               child: child,
             );
           },
-          child: Stack(
-            children: [
-              GestureDetector(
-                onHorizontalDragStart:
-                    widget.isDraggable ? _onHorizontalDragStart : null,
-                onHorizontalDragEnd:
-                    widget.isDraggable ? _onHorizontalDragEnd : null,
-                onHorizontalDragUpdate: widget.isDraggable
-                    ? (detail) => _onHorizontalDragUpdate(detail, constrain)
-                    : null,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: _appBarColor,
-                  child: Column(
-                    children: <Widget>[
-                      if (widget.appBar != null &&
-                          widget.appBar is SliderAppBar)
-                        SAppBar(
-                          isCupertino: widget.isCupertino,
-                          slideDirection: widget.slideDirection,
-                          onTap: () => toggle(),
-                          animationController: _animationDrawerController,
-                          splashColor: widget.splashColor,
-                          sliderAppBar: widget.appBar as SliderAppBar,
-                        ),
-                      if (widget.appBar != null &&
-                          widget.appBar is! SliderAppBar)
-                        widget.appBar!,
-                      Expanded(child: widget.child),
-                    ],
-                  ),
-                ),
+          child: GestureDetector(
+            onHorizontalDragStart: _onHorizontalDragStart,
+            onHorizontalDragEnd: _onHorizontalDragEnd,
+            onHorizontalDragUpdate: (detail) =>
+                _onHorizontalDragUpdate(detail, constrain),
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: _appBarColor,
+              child: Column(
+                children: <Widget>[
+                  if (widget.appBar != null && widget.appBar is SliderAppBar)
+                    SAppBar(
+                      isCupertino: widget.isCupertino,
+                      slideDirection: widget.slideDirection,
+                      onTap: () => toggle(),
+                      animationController: _animationDrawerController,
+                      splashColor: widget.splashColor,
+                      sliderAppBar: widget.appBar as SliderAppBar,
+                    ),
+                  if (widget.appBar != null && widget.appBar is! SliderAppBar)
+                    widget.appBar!,
+                  Expanded(child: widget.child),
+                ],
               ),
-              if (_open)
-                GestureDetector(
-                  onTap: () {
-                    closeSlider();
-                  },
-                  onHorizontalDragStart:
-                      widget.isDraggable ? _onHorizontalDragStart : null,
-                  onHorizontalDragEnd:
-                      widget.isDraggable ? _onHorizontalDragEnd : null,
-                  onHorizontalDragUpdate: widget.isDraggable
-                      ? (detail) => _onHorizontalDragUpdate(detail, constrain)
-                      : null,
-                  child: Container(
-                    color: Colors.transparent,
-                  ),
-                ),
-            ],
+            ),
           ),
         ),
       ]));
