@@ -239,10 +239,13 @@ class SliderDrawerState extends State<SliderDrawer>
           child: Stack(
             children: [
               GestureDetector(
-                onHorizontalDragStart: _onHorizontalDragStart,
-                onHorizontalDragEnd: _onHorizontalDragEnd,
-                onHorizontalDragUpdate: (detail) =>
-                    _onHorizontalDragUpdate(detail, constrain),
+                onHorizontalDragStart:
+                    widget.isDraggable ? _onHorizontalDragStart : null,
+                onHorizontalDragEnd:
+                    widget.isDraggable ? _onHorizontalDragEnd : null,
+                onHorizontalDragUpdate: widget.isDraggable
+                    ? (detail) => _onHorizontalDragUpdate(detail, constrain)
+                    : null,
                 child: Container(
                   width: double.infinity,
                   height: double.infinity,
@@ -272,10 +275,13 @@ class SliderDrawerState extends State<SliderDrawer>
                   onTap: () {
                     closeSlider();
                   },
-                  onHorizontalDragStart: _onHorizontalDragStart,
-                  onHorizontalDragEnd: _onHorizontalDragEnd,
-                  onHorizontalDragUpdate: (detail) =>
-                      _onHorizontalDragUpdate(detail, constrain),
+                  onHorizontalDragStart:
+                      widget.isDraggable ? _onHorizontalDragStart : null,
+                  onHorizontalDragEnd:
+                      widget.isDraggable ? _onHorizontalDragEnd : null,
+                  onHorizontalDragUpdate: widget.isDraggable
+                      ? (detail) => _onHorizontalDragUpdate(detail, constrain)
+                      : null,
                   child: Container(
                     color: Colors.transparent,
                   ),
